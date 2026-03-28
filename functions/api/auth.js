@@ -32,14 +32,15 @@ export async function onRequestPost(context) {
     );
     const payload = `pokescan:${Date.now()}`;
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
-    const token = btoa(payload + '.' + Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join(''));
+    const hex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const token = btoa(payload + '.' + hex);
 
     return new Response(JSON.stringify({ token }), {
       status: 200,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Server error' }), {
+    return new Response(JSON.stringify({ error: 'Server error', details: err.message }), {
       status: 500,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
