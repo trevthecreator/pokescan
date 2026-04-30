@@ -36,6 +36,7 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const fileRef = useRef();
+  const uploadRef = useRef();
 
   useEffect(() => { save('pokescan-inventory', inventory); }, [inventory]);
   useEffect(() => { save('pokescan-log', log); }, [log]);
@@ -69,8 +70,32 @@ export default function App() {
     setToken('');
   }
 
-  // Camera
+  // Resize image to max 2048px on longest side, compress as JPEG
+  function resizeImage(file) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 2048;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          const scale = MAX / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  // Camera / Upload
   function handleSnap() { fileRef.current?.click(); }
+  function handleUpload() { uploadRef.current?.click(); }
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -78,20 +103,23 @@ export default function App() {
     e.target.value = '';
     setScanning(true);
     try {
-      const base64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(file);
-      });
+      const base64 = await resizeImage(file);
       const res = await fetch(API + '/api/scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token,
         },
-        body: JSON.stringify({ image: base64, media_type: file.type || 'image/jpeg' }),
+        body: JSON.stringify({ image: base64, media_type: 'image/jpeg' }),
       });
-      if (!res.ok) throw new Error('Scan failed');
+      if (!res.ok) {
+        let errMsg = `Scan failed (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData.error) errMsg = errData.error;
+        } catch {}
+        throw new Error(errMsg);
+      }
       const { cards } = await res.json();
       const newCards = (cards || []).map(c => ({
         ...c,
@@ -100,7 +128,7 @@ export default function App() {
       }));
       setBatch(prev => [...prev, ...newCards]);
     } catch (err) {
-      showToast('Scan failed — try again', 'buy');
+      showToast(err.message || 'Scan failed — try again', 'buy');
     }
     setScanning(false);
   }
@@ -328,9 +356,21 @@ export default function App() {
         className="file-input"
         onChange={handleFile}
       />
-      <button className="snap-btn" onClick={handleSnap} disabled={scanning}>
-        📸 Snap Cards
-      </button>
+      <input
+        ref={uploadRef}
+        type="file"
+        accept="image/*"
+        className="file-input"
+        onChange={handleFile}
+      />
+      <div className="snap-row">
+        <button className="snap-btn" onClick={handleSnap} disabled={scanning}>
+          📸 Snap Cards
+        </button>
+        <button className="snap-btn upload-btn" onClick={handleUpload} disabled={scanning}>
+          📁 Upload Photo
+        </button>
+      </div>
 
       {scanning && <div className="scanning">Scanning cards...</div>}
 

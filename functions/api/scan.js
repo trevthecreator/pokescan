@@ -51,7 +51,7 @@ export async function onRequestPost(context) {
 
     const geminiKey = context.env.GEMINI_API_KEY;
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,6 +78,16 @@ export async function onRequestPost(context) {
     );
 
     const data = await response.json();
+
+    if (!response.ok) {
+      const errMsg = data.error?.message || 'Gemini API error';
+      const status = data.error?.code === 429 ? 429 : 502;
+      return new Response(JSON.stringify({ error: errMsg }), {
+        status,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // Parse JSON from response (handle possible markdown fences)

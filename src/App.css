@@ -163,9 +163,15 @@ body {
   color: #2ecc71;
 }
 
-/* Snap Button */
+/* Snap Buttons */
+.snap-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
 .snap-btn {
-  width: 100%;
+  flex: 1;
   padding: 16px;
   background: linear-gradient(135deg, #f7b731, #e09800);
   border: none;
@@ -175,7 +181,13 @@ body {
   font-weight: 700;
   cursor: pointer;
   min-height: 52px;
-  margin-bottom: 16px;
+}
+
+.snap-btn.upload-btn {
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.15);
+  color: #ccc;
+  font-size: 15px;
 }
 
 .snap-btn:disabled {
@@ -432,7 +444,8 @@ body {
   font-size: 15px;
   z-index: 200;
   animation: slideUp 0.3s ease-out;
-  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  text-align: center;
 }
 
 .toast.buy {
