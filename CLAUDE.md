@@ -16,11 +16,15 @@ React + Vite SPA for scanning, identifying, and tracking Pokemon cards. Uses dev
 ## Design System
 
 **Read `~/knowledge/_meta/HEARTH-UI-SPEC.md` before writing any frontend code.**
+**Read `~/knowledge/_meta/HEARTH-CODE-SPEC.md` before writing any code.**
 
-- Product-specific rules: `UI-APPENDIX.md` in this repo.
+All new pages and components must follow both specs.
+
+- Product-specific rules: `UI-APPENDIX.md` (and `CODE-APPENDIX.md` when applicable) in this repo.
 - Shared components: `~/hearth-ui/components/` (import from `@hearth/ui`).
 - Tokens: `~/hearth-ui/tokens/hearth-tokens.css` (import in app root).
-- Compliance check: `~/hearth-ui/scripts/hearth-lint.sh ~/projects/pokescan` before committing UI changes.
+- UI compliance check: `~/hearth-ui/scripts/hearth-lint.sh ~/projects/pokescan`
+- Code compliance check: `~/scripts/hearth-code-lint.sh ~/projects/pokescan`
 - Living reference: https://design.trev.works
 
 PokeScan is currently the lowest-compliance Hearth product. Major gaps:
